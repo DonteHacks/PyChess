@@ -41,7 +41,7 @@ def main():
             # DEV TOOLS
             if user_input == 'm':
                 user_input = input("\nWhich spot's piece would you like to get the valid moves for?\n")
-                print(chessboard.get_spot(user_input).piece.get_shadow_moves(user_input))
+                print(chessboard.get_spot(user_input).piece.get_valid_moves(chessboard, user_input))
                 input("Enter to continue...")
         else:
             try:

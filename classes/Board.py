@@ -1,7 +1,6 @@
 import csv
 import pandas as pd
 from tabulate import tabulate
-import boards
 import pathlib
 
 currpath = pathlib.Path(__file__).parent.resolve()
@@ -159,7 +158,7 @@ class Rook(Piece):
         return output
         
 
-    def get_shadow_moves(self, board : Board, spot : str):
+    def get_valid_moves(self, board : Board, spot : str):
         valid_moves = []
         valid_moves.extend(self.get_valid_branch(board, 'left', spot))
         valid_moves.extend(self.get_valid_branch(board, 'right', spot))
