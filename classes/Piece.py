@@ -61,7 +61,30 @@ class Bishop(Piece):
     def __init__(self, color='', character='', has_moved=False):
         super().__init__(color, character, has_moved)
 
-    pass
+    def get_diag(self, direction : str, spot : str):
+        function_map = {
+                            'left_up' : get_spot_left_up,
+                            'right_up' : get_spot_right_up,
+                            'left_down' : get_spot_left_down,
+                            'right_down' : get_spot_right_down
+        
+        }
+        output = []
+        next_spot = function_map[direction](spot)
+        while next_spot != None:
+            output.append(next_spot)
+            next_spot = function_map[direction](next_spot)
+        return output
+
+    def get_shadow_moves(self, spot : str):
+        shadow_moves = []
+        shadow_moves.extend(self.get_diag('left_up', spot))
+        shadow_moves.extend(self.get_diag('right_up', spot))
+        shadow_moves.extend(self.get_diag('left_down', spot))
+        shadow_moves.extend(self.get_diag('right_down', spot))
+        return shadow_moves
+
+
 
 class Rook(Piece):
 
