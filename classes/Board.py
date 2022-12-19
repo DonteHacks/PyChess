@@ -39,6 +39,9 @@ class Board():
     def display_board(self):
         print(tabulate(self.spots_df, headers='keys', tablefmt='grid', stralign='center'))
 
+    def __str__(self):
+        return str(self.spots_df)
+
 def get_spot_up(spot : str):
     if spot[1] != '8': return spot[0] + rank_names[rank_names.index(spot[1]) - 1] 
     pass
@@ -91,7 +94,33 @@ class Knight(Piece):
     def __init__(self, color='', character='', has_moved=False):
         super().__init__(color, character, has_moved)
 
-    pass
+    # 'ddru' returns spot down, down, right, up from spot
+    def get_spot_from_path(self, path : str, spot : str):
+        curr_spot = spot
+        function_map = {
+                            'l' : get_spot_left,
+                            'r' : get_spot_right,
+                            'u' : get_spot_up,
+                            'd' : get_spot_down
+        }
+        for letter in path:
+            curr_spot = function_map[letter](curr_spot)
+            if curr_spot == None:
+                return None
+        return curr_spot
+    
+    def get_valid_moves(self, board : Board, spot : str):
+        valid_moves = []
+        paths = ['ull', 'dll', 'urr', 'drr', 'luu', 'ruu', 'ldd', 'rdd']
+        for path in paths:
+            target_spot = self.get_spot_from_path(path, spot)
+            if target_spot == None:
+                continue
+            target_color = board.get_spot(target_spot).piece.color
+            if target_color == '' or target_color != self.color:
+                valid_moves.append(target_spot)
+        return valid_moves
+
 
 class Bishop(Piece):
 
@@ -127,8 +156,6 @@ class Bishop(Piece):
         valid_moves.extend(self.get_valid_diag('left_down', spot))
         valid_moves.extend(self.get_valid_diag('right_down', spot))
         return valid_moves
-
-
 
 class Rook(Piece):
 
@@ -170,6 +197,11 @@ class Queen(Piece):
 
     def __init__(self, color='', character='', has_moved=False):
         super().__init__(color, character, has_moved)
+
+    def get_valid_moves(self, spot : str):
+        valid_moves : list = Rook.get_valid_moves(spot)
+        valid_moves.extend(Bishop.get_valid_moves(spot))
+        return valid_moves
 
     pass
 
