@@ -1,8 +1,8 @@
 import os
 import pathlib
 from termcolor import colored
+from classes.Board import Piece
 from classes.Board import Board
-from classes.Piece import Piece
 
 currpath = pathlib.Path(__file__).parent.resolve()
 
@@ -48,17 +48,11 @@ def main():
                 target = user_input[:2]
                 destination = user_input[3:]
                 target_piece = chessboard.get_spot(target).piece
-                destination_piece = chessboard.get_spot(destination).piece
-                shadow_moves = target_piece.get_shadow_moves(target)
-                if destination in shadow_moves:
-                    if target_piece.color == destination_piece.color:
-                        print(colored("\nYOU CAN'T CAPTURE YOUR OWN PIECE, ENTER TO TRY AGAIN...".format(user_input), 'red'))
-                        input()
-                        continue
-                    else:
-                        chessboard.get_spot(destination).piece = target_piece
-                        chessboard.get_spot(target).piece = Piece()
-                        target_piece.has_moved = True
+                valid_moves = target_piece.get_valid_moves(chessboard, target)
+                if destination in valid_moves:
+                    chessboard.get_spot(destination).piece = target_piece
+                    chessboard.get_spot(target).piece = Piece()
+                    target_piece.has_moved = True
                 else:
                     print(colored("\n{} IS AN INVALID MOVE, ENTER TO TRY AGAIN...".format(user_input), 'red'))
                     input()
