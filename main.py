@@ -61,8 +61,6 @@ def main():
                 print(colored("\nINVALID INPUT {}, ENTER TO TRY AGAIN...".format(user_input), 'red'))
                 input()
                 continue
-        
-
-
+            
 if __name__ == "__main__":
     main()
