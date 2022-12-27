@@ -87,7 +87,50 @@ class Pawn(Piece):
     def __init__(self, color='', character='', has_moved=False):
         super().__init__(color, character, has_moved)
 
-    pass
+    def get_valid_moves(self, board : Board, spot : str):
+
+        # This map has to be used because we can't use target.color != self.color,
+        # since color = '' is used for empty spaces. We have to map these if we want
+        # to avoid extra conditionals
+        opposite_color_map = {'w' : 'b', 'b' : 'w'}
+
+        valid_moves = []
+        
+        # Get forward and two forward spaces
+        # Get two diagonal spaces for attacking
+        if self.color == 'w':
+            forward_spot = get_spot_up(spot)
+            two_forward_spot = get_spot_up(forward_spot)
+            left_attack_spot = get_spot_left_up(spot)
+            right_attack_spot = get_spot_right_up(spot)
+        elif self.color == 'b':
+            forward_spot = get_spot_down(spot)
+            two_forward_spot = get_spot_down(forward_spot)
+            left_attack_spot = get_spot_right_down(spot)
+            right_attack_spot = get_spot_left_down(spot)
+        else: 
+            raise Exception('Did not recognize the piece color: {}'.format(self.color))
+        
+
+        # If left_attack_spot != None AND contains opposite color piece, 
+        if left_attack_spot != None and board.get_spot(left_attack_spot).piece.color == opposite_color_map[self.color]:
+            # Add to valid moves
+            valid_moves.append(left_attack_spot)
+        # If right_attack_spot != None AND contains opposite color piece, 
+        if right_attack_spot != None and board.get_spot(right_attack_spot).piece.color == opposite_color_map[self.color]:
+            # Add to valid moves
+            valid_moves.append(right_attack_spot)
+
+        # If forward space is empty, 
+            # append it to valid moves
+        if board.get_spot(forward_spot).piece.color == '':
+            valid_moves.append(forward_spot)
+            # If !self.has_moved AND two-forward space is empty,
+            if (not self.has_moved) and (board.get_spot(two_forward_spot).piece.color == ''):
+                # append it to valid moves
+                valid_moves.append(two_forward_spot)
+
+        return valid_moves
 
 class Knight(Piece):
 
@@ -121,13 +164,7 @@ class Knight(Piece):
                 valid_moves.append(target_spot)
         return valid_moves
 
-
-class Bishop(Piece):
-
-    def __init__(self, color='', character='', has_moved=False):
-        super().__init__(color, character, has_moved)
-
-    def get_valid_diag(self, board : Board, direction : str, spot : str):
+def get_valid_diag(board : Board, direction : str, color : str, spot : str):
         function_map = {
                             'left_up' : get_spot_left_up,
                             'right_up' : get_spot_right_up,
@@ -142,27 +179,27 @@ class Bishop(Piece):
             if next_color == '':
                 output.append(next_spot)
                 next_spot = function_map[direction](next_spot)
-            elif next_color != self.color:
+            elif next_color != color:
                 output.append(next_spot)
                 break
-            elif next_color == self.color:
+            elif next_color == color:
                 break
         return output
 
-    def get_valid_moves(self, spot : str):
-        valid_moves = []
-        valid_moves.extend(self.get_valid_diag('left_up', spot))
-        valid_moves.extend(self.get_valid_diag('right_up', spot))
-        valid_moves.extend(self.get_valid_diag('left_down', spot))
-        valid_moves.extend(self.get_valid_diag('right_down', spot))
-        return valid_moves
-
-class Rook(Piece):
+class Bishop(Piece):
 
     def __init__(self, color='', character='', has_moved=False):
         super().__init__(color, character, has_moved)
 
-    def get_valid_branch(self, board : Board, direction : str, spot : str):
+    def get_valid_moves(self, board : Board, spot : str):
+        valid_moves = []
+        valid_moves.extend(get_valid_diag(board, 'left_up', self.color, spot))
+        valid_moves.extend(get_valid_diag(board, 'right_up', self.color, spot))
+        valid_moves.extend(get_valid_diag(board, 'left_down', self.color, spot))
+        valid_moves.extend(get_valid_diag(board, 'right_down', self.color, spot))
+        return valid_moves
+
+def get_valid_branch(board : Board, direction : str, color : str, spot : str):
         function_map = {
                             'left' : get_spot_left,
                             'right' : get_spot_right,
@@ -177,20 +214,24 @@ class Rook(Piece):
             if next_color == '':
                 output.append(next_spot)
                 next_spot = function_map[direction](next_spot)
-            elif next_color != self.color:
+            elif next_color != color:
                 output.append(next_spot)
                 break
-            elif next_color == self.color:
+            elif next_color == color:
                 break
         return output
-        
+
+class Rook(Piece):
+
+    def __init__(self, color='', character='', has_moved=False):
+        super().__init__(color, character, has_moved)
 
     def get_valid_moves(self, board : Board, spot : str):
         valid_moves = []
-        valid_moves.extend(self.get_valid_branch(board, 'left', spot))
-        valid_moves.extend(self.get_valid_branch(board, 'right', spot))
-        valid_moves.extend(self.get_valid_branch(board, 'up', spot))
-        valid_moves.extend(self.get_valid_branch(board, 'down', spot))
+        valid_moves.extend(get_valid_branch(board, 'left', self.color, spot))
+        valid_moves.extend(get_valid_branch(board, 'right', self.color, spot))
+        valid_moves.extend(get_valid_branch(board, 'up', self.color, spot))
+        valid_moves.extend(get_valid_branch(board, 'down', self.color, spot))
         return valid_moves
 
 class Queen(Piece):
@@ -198,12 +239,17 @@ class Queen(Piece):
     def __init__(self, color='', character='', has_moved=False):
         super().__init__(color, character, has_moved)
 
-    def get_valid_moves(self, spot : str):
-        valid_moves : list = Rook.get_valid_moves(spot)
-        valid_moves.extend(Bishop.get_valid_moves(spot))
+    def get_valid_moves(self, board : Board, spot : str):
+        valid_moves = []
+        valid_moves.extend(get_valid_diag(board, 'left_up', self.color, spot))
+        valid_moves.extend(get_valid_diag(board, 'right_up', self.color, spot))
+        valid_moves.extend(get_valid_diag(board, 'left_down', self.color, spot))
+        valid_moves.extend(get_valid_diag(board, 'right_down', self.color, spot))
+        valid_moves.extend(get_valid_branch(board, 'left', self.color, spot))
+        valid_moves.extend(get_valid_branch(board, 'right', self.color, spot))
+        valid_moves.extend(get_valid_branch(board, 'up', self.color, spot))
+        valid_moves.extend(get_valid_branch(board, 'down', self.color, spot))
         return valid_moves
-
-    pass
 
 class King(Piece):
 
